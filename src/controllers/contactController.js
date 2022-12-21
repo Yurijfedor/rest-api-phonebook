@@ -2,9 +2,8 @@ const { json } = require('express');
 const fs = require('fs/promises');
 const path = require('path')
 const { v4: uuidv4 } = require("uuid")
-const Joi = require('joi');
 
-const pathContacts = path.resolve('./models/contacts.json')
+const pathContacts = path.resolve('./src/models/contacts.json')
 
 
 
@@ -56,23 +55,6 @@ const data = await fs.readFile(pathContacts, "utf-8");
 
 const addContact = async (reg, res, next) => {
   try {
-    const schema = Joi.object({
-      name: Joi.string()
-        .strict()
-        .trim()
-        .min(3)
-        .max(30)
-        .required(),
-      email: Joi.string()
-        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }).required(),
-      phone: Joi.string().length(10).pattern(/^[0-9]+$/).required(),
-    })
-
-    const validationResult = schema.validate(reg.body);
-    if (validationResult.error) {
-       return res.status(400).json({"message": "missing required name field"})
-    }
-
     const {
       name,
       email,
@@ -98,25 +80,9 @@ const addContact = async (reg, res, next) => {
 const updateContact = async (reg, res, next) => {
 
   try {
-    if (JSON.stringify(reg.body) === '{}') {
-      return res.status(400).json({"message": "missing fields"})
-    }
-
-    const schema = Joi.object({
-      name: Joi.string()
-        .strict()
-        .trim()
-        .min(3)
-        .max(30),
-      email: Joi.string()
-        .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
-      phone: Joi.string().length(10).pattern(/^[0-9]+$/),
-    })
-
-    const validationResult = schema.validate(reg.body);
-    if (validationResult.error) {
-       return res.status(400).json({"message": "missing required name field"})
-    }
+    // if (JSON.stringify(reg.body) === '{}') {
+    //   return res.status(400).json({"message": "missing fields"})
+    // }
     const {
       name,
       email,

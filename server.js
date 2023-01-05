@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
   connection()
   .then(() => {
-    app.listen(PORT, function () {
+    app.listen(PORT, () => {
       console.log(`Server running. Use our API on port: ${PORT}`);
       console.log("Database connection successful");
     });

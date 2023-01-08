@@ -1,67 +1,53 @@
-const { Contact } = require('../db/contactModel')
-const {getContacts, getContactById, addContact, updateContact, removeContact} = require('../services/contactsService')
+const {getContacts, getContactById, addContact, updateContact, removeContact, updateStatusContact} = require('../services/contactsService')
 
 
 const listContactsController = async (_, res) => {
-  try {
     const contacts = await getContacts()
     res.json({contacts})
-  } catch (error) {
-    console.log(error.message);
-  }
 }
 
 const getByIdController = async (reg, res) => {
-  try {
   const {id}  = reg.params
   const contact = await getContactById(id)
-
   res.json({contact})
-  } catch (error) {
-    console.log(error.message);
-  }
-  
 } 
 
 const removeContactController = async (reg, res) => {
-  try {
     const { id } = reg.params
-    await Contact.findByIdAndRemove(id)
+    await removeContact(id)
     res.json({"message": "contact deleted"})
-  } catch (error) {
-    console.log(error.message);
-  }
 }
 
 const addContactController = async (reg, res) => {
-  try {
     const {
       name,
       email,
       phone,
+      favorite,
     } = reg.body
-    const contact = new Contact({ name, email, phone })
-   await contact.save()
-    res.json({contact})
-  } catch (error) {
-    console.log(error.message);
-  }
+    const newContact = await addContact({name, email, phone, favorite})
+    res.json({newContact})
 }
 
 const updateContactController = async (reg, res) => {
-  try {
     const {id}  = reg.params
     const {
       name,
       email,
       phone
     } = reg.body
-    await Contact.findByIdAndUpdate(id, { $set: { name, email, phone } })
-    const updatedContact = await Contact.findById(id)
+    
+    const updatedContact = await updateContact(id, {name, email, phone})
     res.json({updatedContact})
-  } catch (error) {
-    res.status(404).json({"message": "Not found"})
-  }
+}
+
+const updateStatusContactController = async (reg, res) => {
+  const { id } = reg.params
+  const {
+    favorite
+  } = reg.body
+  const updatedFavoriteStatus = await updateStatusContact(id, { favorite })
+  res.json({updatedFavoriteStatus})
 }
 
 module.exports = {
@@ -70,4 +56,5 @@ module.exports = {
   removeContactController,
   addContactController,
   updateContactController,
+  updateStatusContactController,
 }

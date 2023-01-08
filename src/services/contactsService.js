@@ -1,4 +1,5 @@
-const {Contact} = require('../db/contactModel')
+const { Contact } = require('../db/contactModel')
+const {WrongParametersError, UpdatedFavoriteStatusError} = require('../helpers/errors')
 
 const getContacts = async() => {
 return await Contact.find({})
@@ -7,21 +8,34 @@ return await Contact.find({})
 const getContactById = async(id) => {
     const contact = await Contact.findById(id)
   if (!contact) {
-    return res.status(404).json({message: 'Not found'})
+    throw new WrongParametersError('Not found')
     }
     return contact
 }
 
-const addContact = () => {
-    
+const addContact = async ({name, email, phone, favorite}) => {
+  const contact = new Contact({name, email, phone, favorite})
+  await contact.save()
+  return contact
+ 
 }
 
-const updateContact = () => {
-    
+const updateContact = async(id, {name, email, phone, favorite}) => {
+  await Contact.findByIdAndUpdate(id, { $set: { name, email, phone, favorite } })
+  const updatedContact = await Contact.findById(id)
+  return updatedContact
 }
 
-const removeContact = () => {
-    
+const removeContact = async(id) => {
+    await Contact.findByIdAndRemove(id)
+}
+
+const updateStatusContact = async (id, { favorite }) => {
+  const updatedStatus = await Contact.findByIdAndUpdate(id, { $set: { favorite } }, { new: true })
+  if (!updatedStatus) {
+    throw new UpdatedFavoriteStatusError("Not found")
+  }
+  return updatedStatus
 }
 
 module.exports = {
@@ -30,4 +44,5 @@ module.exports = {
     addContact,
     updateContact,
     removeContact,
+    updateStatusContact,
 }

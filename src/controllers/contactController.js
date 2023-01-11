@@ -1,124 +1,60 @@
-const { json } = require('express');
-const fs = require('fs/promises');
-const path = require('path')
-const { v4: uuidv4 } = require("uuid")
-
-const pathContacts = path.resolve('./src/models/contacts.json')
+const {getContacts, getContactById, addContact, updateContact, removeContact, updateStatusContact} = require('../services/contactsService')
 
 
-
-const listContacts = async (reg, res, next) => {
-  try {
-    const data = await fs.readFile(pathContacts, "utf-8"); 
-    const contacts = JSON.parse(data)
-  res.json({contacts})
-  } catch (error) {
-    console.log(error.message);
-  }
+const listContactsController = async (_, res) => {
+    const contacts = await getContacts()
+    res.json({contacts})
 }
 
-const getById = async (reg, res, next) => {
-  try {
-    const data = await fs.readFile(pathContacts, "utf-8"); 
-  const contacts = JSON.parse(data)
+const getByIdController = async (reg, res) => {
   const {id}  = reg.params
-  const [contact] = contacts.filter((item) => item.id === id)
-  if (!contact) {
-    return res.status(404).json({message: 'Not found'})
-  }
-
+  const contact = await getContactById(id)
   res.json({contact})
-  } catch (error) {
-    console.log(error.message);
-  }
-  
 } 
 
-const removeContact = async (reg, res, next) => {
-  try {
-const data = await fs.readFile(pathContacts, "utf-8"); 
-  const contacts = JSON.parse(data)
+const removeContactController = async (reg, res) => {
     const { id } = reg.params
-    const index = contacts.findIndex(
-      (item) => id === item.id
-    );
-    if (!index || index === -1) {
-      return res.status(404).json({message: 'Not found'})
-    }
-     contacts.splice(index, 1);
-    await fs.writeFile(pathContacts, JSON.stringify(contacts), "utf-8");
+    await removeContact(id)
     res.json({"message": "contact deleted"})
-  } catch (error) {
-    console.log(error.message);
-  }
 }
 
-const addContact = async (reg, res, next) => {
-  try {
+const addContactController = async (reg, res) => {
     const {
       name,
       email,
       phone,
+      favorite,
     } = reg.body
-    
-    const data = await fs.readFile(pathContacts, "utf-8");
-    const contacts = JSON.parse(data);
-    const newContact = {
-      id: uuidv4(),
-      name,
-      email,
-      phone,
-    };
-    contacts.push(newContact);
-    await fs.writeFile(pathContacts, JSON.stringify(contacts), "utf-8");
+    const newContact = await addContact({name, email, phone, favorite})
     res.json({newContact})
-  } catch (error) {
-    console.log(error.message);
-  }
 }
 
-const updateContact = async (reg, res, next) => {
-
-  try {
-    // if (JSON.stringify(reg.body) === '{}') {
-    //   return res.status(400).json({"message": "missing fields"})
-    // }
+const updateContactController = async (reg, res) => {
+    const {id}  = reg.params
     const {
       name,
       email,
       phone
     } = reg.body
     
-    const data = await fs.readFile(pathContacts, "utf-8");
-    const contacts = JSON.parse(data);
-    const {id} = reg.params
-    contacts.forEach(element => {
-      if (element.id === id) {
-        if (name) {
-          element.name = name
-        } else return
-        if (email) {
-        element.email = email
-        } else return
-        if (phone) {
-          element.phone = phone
-        } else return
-      }
-    });
-    const indexOfUpdatedContact = contacts.findIndex((item) => id === item.id);
-    const updatedContact = contacts[indexOfUpdatedContact]
-    console.log(updatedContact);
-    await fs.writeFile(pathContacts, JSON.stringify(contacts), "utf-8");
+    const updatedContact = await updateContact(id, {name, email, phone})
     res.json({updatedContact})
-  } catch (error) {
-    res.status(404).json({"message": "Not found"})
-  }
+}
+
+const updateStatusContactController = async (reg, res) => {
+  const { id } = reg.params
+  const {
+    favorite
+  } = reg.body
+  const updatedFavoriteStatus = await updateStatusContact(id, { favorite })
+  res.json({updatedFavoriteStatus})
 }
 
 module.exports = {
-  listContacts,
-  getById,
-  removeContact,
-  addContact,
-  updateContact,
+  listContactsController,
+  getByIdController,
+  removeContactController,
+  addContactController,
+  updateContactController,
+  updateStatusContactController,
 }

@@ -1,4 +1,4 @@
-const {ValidationError, WrongParametersError, UpdatedFavoriteStatusError} = require('./errors')
+const {ApiPhonebookError} = require('./errors')
 
 const asyncWrapper = (controller) => {
     return (reg, res, next) => {
@@ -7,7 +7,7 @@ const asyncWrapper = (controller) => {
 }
 
 const errorHandler = (err, req, res, next) => {
-    if (err instanceof ValidationError || err instanceof WrongParametersError || err instanceof UpdatedFavoriteStatusError) {
+    if (err instanceof ApiPhonebookError) {
     return res.status(err.status).json({message: err.message})
 }
   res.status(500).json({ message: err.message })

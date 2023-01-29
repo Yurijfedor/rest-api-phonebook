@@ -5,16 +5,15 @@ const { set } = require('mongoose')
 const { User } = require('../db/userModel')
 const { NotAuthorizedError, EmailInUseError } = require('../helpers/errors')
 
-
-const registration = async (email, password) => {
+const registration = async (email, password, avatarURL) => {
     const checEmail = await User.findOne({ email })
     if (checEmail) {
         throw new EmailInUseError(`Email in use`)
     }
     
-    const user = new User({ email, password })
+    const user = new User({ email, password, avatarURL })
     await user.save()
-    const savedUser = await User.findOne({email}).select({email: 1, subscription: 1, _id: 0 })
+    const savedUser = await User.findOne({email}).select({email: 1, subscription: 1, avatarURL: 1, _id: 0 })
     return savedUser
 }
 
@@ -30,7 +29,8 @@ const login = async (email, password) => {
     }
 
     const token = jwt.sign({
-        _id: user._id
+        _id: user._id,
+        email: user.email
     }, process.env.JWT_SECRET)
 
     await User.findOneAndUpdate({email}, {$set: {token}})
@@ -73,10 +73,25 @@ const changeSubscription = async (subscription, userId) => {
   return changedSubscription
 }
 
+const changeAvatar = async (path, userId) => {
+    const updatedUser = await User.findOneAndUpdate(
+    { _id: userId },
+    { $set: { avatarURL: path } },
+    { new: true }
+    ).select({avatarURL: 1, _id: 0 })
+  if (!updatedUser) {
+    throw new NotAuthorizedError("Not authorized")
+    }
+
+  return updatedUser
+}
+
+
 module.exports = {
     registration,
     login,
     logout,
     current,
-    changeSubscription
+    changeSubscription,
+    changeAvatar
 }

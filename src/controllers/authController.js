@@ -1,11 +1,16 @@
-const {registration, login, logout, current, changeSubscription} = require('../services/authService')
+const gravatar = require('gravatar')
+const Jimp = require('jimp');
+const Path = require('path')
+const fs = require('fs/promises')
+const { registration, login, logout, current, changeSubscription, changeAvatar } = require('../services/authService')
 
 const registrationController = async (reg, res) => {
     const {
         email,
         password
     } = reg.body
-   const user = await registration(email, password)
+    const avatarUrl = gravatar.url(email, {s: '200', r: 'pg', d: '404'})
+   const user = await registration(email, password, avatarUrl)
     res.status(201).json({ user })
 }
 
@@ -39,10 +44,37 @@ const subscriptionController = async (reg, res) => {
     res.status(200).json({user})
 }
 
+const avatarController = async (reg, res) => {
+   
+    const { _id: userId, email } = reg.user
+    const { path, filename } = reg.file
+
+    const [nic, _] = email.split('@')
+    const [, extention] = filename.split('.')
+    const fileName = `${nic}.${extention}`
+
+    const image = await Jimp.read(path);
+	image.resize(250, 250, Jimp.RESIZE_BEZIER);
+    await image.writeAsync(path);
+
+    const newPath = Path.resolve(__dirname, "../../public/avatars", fileName)
+    try {
+        await fs.rename(path, newPath)
+    } catch (error) {
+        console.error('error while moving file to public', error);
+    }
+    
+   const user = await changeAvatar(newPath, userId) 
+    
+    res.status(200).json({user})
+}
+
+
 module.exports = {
     registrationController,
     loginController,
     logoutController,
     currentController,
-    subscriptionController
+    subscriptionController,
+    avatarController
 }

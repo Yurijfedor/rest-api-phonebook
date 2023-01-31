@@ -2,17 +2,42 @@ const gravatar = require('gravatar')
 const Jimp = require('jimp');
 const Path = require('path')
 const fs = require('fs/promises')
-const { registration, login, logout, current, changeSubscription, changeAvatar } = require('../services/authService')
+const { v4: uuidv4 } = require('uuid');
+const {WrongParametersError} = require('../helpers/errors')
+const { registration, login, logout, current, changeSubscription, changeAvatar, verification, resendVerification } = require('../services/authService')
 
 const registrationController = async (reg, res) => {
     const {
         email,
         password
     } = reg.body
+    const verificationToken = uuidv4()
     const avatarUrl = gravatar.url(email, {s: '200', r: 'pg', d: '404'})
-   const user = await registration(email, password, avatarUrl)
+   const user = await registration(email, password, avatarUrl, verificationToken)
     res.status(201).json({ user })
 }
+
+const verifyController = async (reg, res) => {
+    const {
+       verificationToken
+    } = reg.params
+   await verification(verificationToken)
+    res.status(200).json({ message: "Verification successful" })
+}
+
+const resendVerifyController = async (reg, res) => {
+    const {
+       email
+    } = reg.body
+
+    if (!email) {
+         throw new WrongParametersError(`missing required field email`)
+    }
+
+   await resendVerification(email)
+    res.status(200).json({ 'message': "Verification email sent" })
+}
+
 
 const loginController = async (reg, res) => {
     const {
@@ -76,5 +101,7 @@ module.exports = {
     logoutController,
     currentController,
     subscriptionController,
-    avatarController
+    avatarController,
+    verifyController,
+    resendVerifyController
 }

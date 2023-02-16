@@ -19,7 +19,7 @@ const getContactById = async (userId, contactId) => {
 const addContact = async ({ name, email, phone, favorite }, userId) => {
   const contact = new Contact({name, email, phone, favorite, userId})
   await contact.save()
-  const savedContact = await Contact({email})
+  const savedContact = await Contact.find({email})
   return savedContact
  
 }
@@ -37,7 +37,7 @@ const removeContact = async(contactId, userId) => {
     await Contact.findOneAndRemove({_id: contactId, userId})
 }
 
-const updateStatusContact = async (contactId, { favorite }, userId) => {
+const updateStatusContact = async (contactId, favorite, userId) => {
   const updatedStatus = await Contact.findOneAndUpdate(
     { _id: contactId, userId },
     { $set: { favorite } },

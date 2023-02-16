@@ -7,7 +7,9 @@ const {
     logoutController,
     currentController,
     subscriptionController,
-    avatarController
+    avatarController,
+    verifyController,
+    resendVerifyController
 } = require('../../controllers/authController')
 const { userValidation } = require('../../middlewares/authValidationMiddleware')
 const { authMiddleware } = require('../../middlewares/authMiddleware')
@@ -26,6 +28,12 @@ router.get('/users/current', authMiddleware, asyncWrapper(currentController))
 router.patch('/users/subscription', authMiddleware, asyncWrapper(subscriptionController))
 
 router.patch('/users/avatars', authMiddleware, uploadMiddleware.single('avatar'), asyncWrapper(avatarController))
+
+router.get('/users/verify/:verificationToken', asyncWrapper(verifyController))
+
+router.post('/users/verify', asyncWrapper(resendVerifyController))
+
+
 
 
 

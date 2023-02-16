@@ -13,6 +13,7 @@ const listContactsController = async (reg, res) => {
 const getByIdController = async (reg, res) => {
   const { id: contactId } = reg.params
   const { _id: userId } = reg.user
+  console.log(reg.params);
   const contact = await getContactById(userId, contactId)
   res.json({contact})
 } 
@@ -51,11 +52,12 @@ const updateContactController = async (reg, res) => {
 
 const updateStatusContactController = async (reg, res) => {
   const { id: contactId } = reg.params
+  console.log(reg.body);
   const {_id: userId} = reg.user
   const {
     favorite
   } = reg.body
-  const updatedFavoriteStatus = await updateStatusContact(contactId, { favorite }, userId)
+  const updatedFavoriteStatus = await updateStatusContact(contactId,  favorite , userId)
   res.json({updatedFavoriteStatus})
 }
 
